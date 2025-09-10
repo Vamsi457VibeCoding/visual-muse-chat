@@ -22,6 +22,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          glow: "hsl(var(--primary-glow))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -57,6 +58,39 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Mind mapping specific colors
+        node: {
+          primary: "hsl(var(--node-primary))",
+          secondary: "hsl(var(--node-secondary))",
+          accent: "hsl(var(--node-accent))",
+          success: "hsl(var(--node-success))",
+          warning: "hsl(var(--node-warning))",
+          danger: "hsl(var(--node-danger))",
+        },
+        canvas: {
+          bg: "hsl(var(--canvas-bg))",
+          grid: "hsl(var(--canvas-grid))",
+          border: "hsl(var(--canvas-border))",
+        },
+        chat: {
+          bg: "hsl(var(--chat-bg))",
+          input: "hsl(var(--chat-input))",
+          "bubble-user": "hsl(var(--chat-bubble-user))",
+          "bubble-ai": "hsl(var(--chat-bubble-ai))",
+        },
+      },
+      backgroundImage: {
+        'gradient-primary': 'var(--gradient-primary)',
+        'gradient-canvas': 'var(--gradient-canvas)',
+      },
+      boxShadow: {
+        'node': 'var(--shadow-node)',
+        'glow': 'var(--shadow-glow)',
+        'chat': 'var(--shadow-chat)',
+      },
+      transitionTimingFunction: {
+        'smooth': 'var(--transition-smooth)',
+        'bounce': 'var(--transition-bounce)',
       },
       borderRadius: {
         lg: "var(--radius)",
