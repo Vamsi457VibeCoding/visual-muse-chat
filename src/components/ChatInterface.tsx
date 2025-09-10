@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import DocumentUpload from './DocumentUpload';
 import DocumentViewer from './DocumentViewer';
+import MessageRenderer from './MessageRenderer';
 import { DocumentStorage, Document } from '@/utils/DocumentStorage';
 
 interface Message {
@@ -36,7 +37,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
     {
       id: '1',
       type: 'ai',
-      content: 'Hello! I\'m your AI assistant for mind mapping. I can help you brainstorm ideas, organize thoughts, and enhance your visual thinking process. You can also upload documents for me to reference. What would you like to explore today?',
+      content: `# Welcome to Your AI Mind Mapping Assistant! 🧠
+
+I'm here to help you **brainstorm ideas**, organize thoughts, and enhance your visual thinking process. 
+
+## What I Can Do:
+- **Markdown Support**: Use *formatting*, **bold text**, and \`code snippets\`
+- **Mathematical Formulas**: Express relationships like $E = mc^2$ or complex equations:
+
+$$\\sum_{i=1}^{n} x_i = \\frac{1}{n} \\sum_{i=1}^{n} (x_i - \\bar{x})^2$$
+
+- **Document Analysis**: Upload files for context-aware responses
+- **Mind Map Integration**: Connect with your visual workspace
+
+> **Pro Tip**: Try asking me about mathematical concepts, and I'll help you visualize them with proper notation!
+
+What would you like to explore today?`,
       timestamp: new Date()
     }
   ]);
@@ -94,35 +110,136 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
       }
       
       const documentResponses = [
-        `Based on the uploaded documents regarding "${userInput}", I found relevant information that suggests organizing this into: key themes from the documents, supporting evidence, and practical applications.`,
-        `According to the documents you've provided about "${userInput}", here are the main points to consider for your mind map: document insights, cross-references, and implementation notes.`,
-        `From the uploaded materials on "${userInput}", I can help you structure this by: document-based categories, source citations, and evidence-backed connections.`,
-        `The documents contain valuable information about "${userInput}". Consider mapping: documented facts, referenced sources, and verified relationships.`,
-        `Based solely on your uploaded documents regarding "${userInput}", here's what the materials suggest: primary concepts, supporting details, and documented outcomes.`
+        `Based on the uploaded documents regarding "${userInput}", I found relevant information that suggests organizing this into:
+
+**Key Themes from Documents:**
+- Primary concepts and definitions
+- Supporting evidence and citations
+- Cross-referenced materials
+
+**Mathematical Analysis** (if applicable):
+$$\\sum_{i=1}^{n} x_i = \\text{total insights from documents}$$
+
+Consider creating \`sub-branches\` for each documented topic.`,
+        
+        `According to the documents you've provided about "${userInput}", here are the main points:
+
+## Document Insights
+1. **Primary Sources**: Referenced materials
+2. **Data Points**: Statistical information
+3. **Conclusions**: Key findings
+
+> *"The most important insight from your documents..."*
+
+For complex relationships, consider using formulas like: $f(x) = ax + b$ where $x$ represents the input variable.`,
+        
+        `From the uploaded materials on "${userInput}", I can help structure this by:
+
+### Document-Based Categories
+- **Evidence**: Factual information
+- **Analysis**: Interpretive content  
+- **Applications**: Practical uses
+
+Mathematical relationships found: $\\frac{d}{dx}f(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}$`
       ];
       
       let response = documentResponses[Math.floor(Math.random() * documentResponses.length)];
       
       if (contextInfo.length > 0) {
-        response = `${contextInfo.join('. ')}. ${response}`;
+        response = `${contextInfo.join('. ')}.\n\n${response}`;
       }
       
       return response;
     }
 
-    // Parametric knowledge mode responses
+    // Parametric knowledge mode responses with markdown and math examples
     const responses = [
-      `That's an interesting idea! Based on "${userInput}", I suggest creating sub-nodes for: key concepts, related topics, and actionable items.`,
-      `Great question! For mind mapping "${userInput}", consider organizing it into main branches: causes, effects, solutions, and examples.`,
-      `I can help you expand on "${userInput}". Try adding child nodes for different perspectives, pros/cons, or step-by-step processes.`,
-      `Excellent insight about "${userInput}"! This could connect well with other nodes in your map. Consider color-coding related concepts.`,
-      `Building on "${userInput}", you might want to explore: background context, current status, future implications, and key stakeholders.`
+      `That's an interesting idea! For "${userInput}", I suggest creating sub-nodes for:
+
+## Key Concepts
+- **Core principles**: Fundamental ideas
+- **Related topics**: Connected concepts  
+- **Actionable items**: Next steps
+
+### Mathematical Relationships
+If dealing with quantitative data, consider: $y = mx + b$ or more complex functions like:
+
+$$f(x) = \\int_{a}^{b} g(t) \\, dt$$
+
+Use \`color-coding\` to group related mathematical concepts.`,
+
+      `Great question! For mind mapping "${userInput}", consider organizing into main branches:
+
+1. **Causes** → Root factors
+2. **Effects** → Resulting outcomes
+3. **Solutions** → Potential remedies
+4. **Examples** → Real-world cases
+
+> **Pro tip**: Use mathematical notation for quantifiable relationships
+
+For probability concepts: $P(A|B) = \\frac{P(B|A) \\cdot P(A)}{P(B)}$`,
+
+      `I can help you expand on "${userInput}". Try adding child nodes for:
+
+### Different Perspectives
+- *Theoretical approach*
+- *Practical application*
+- *Historical context*
+
+### Pros/Cons Analysis
+**Advantages:**
+- Benefit 1
+- Benefit 2
+
+**Disadvantages:**  
+- Challenge 1
+- Challenge 2
+
+For decision matrices, use: $\\text{Score} = \\sum_{i=1}^n w_i \\times r_i$ where $w_i$ is weight and $r_i$ is rating.`,
+
+      `Excellent insight about "${userInput}"! This connects well with other concepts. Consider:
+
+## Color-Coding Strategy
+- 🔴 **Critical concepts**
+- 🟡 **Supporting ideas**  
+- 🟢 **Applications**
+
+### Mathematical Modeling
+For complex systems: 
+
+$$\\begin{align}
+\\dot{x} &= f(x, u, t) \\\\
+y &= g(x, u, t)
+\\end{align}$$
+
+Where $x$ is state, $u$ is input, and $t$ is time.
+
+Use \`inline code\` for variable names and parameters.`,
+
+      `Building on "${userInput}", explore these dimensions:
+
+## Multi-Level Analysis
+
+### 📊 Background Context
+- Historical development
+- Current state assessment
+- Future implications
+
+### 🎯 Key Stakeholders  
+- Primary actors
+- Secondary influences
+- External factors
+
+### 📈 Quantitative Metrics
+For measurement: $\\text{Performance} = \\frac{\\text{Output}}{\\text{Input}} \\times \\text{Quality Factor}$
+
+Consider using **bold** for key terms and *italics* for emphasis.`
     ];
 
     let response = responses[Math.floor(Math.random() * responses.length)];
     
     if (contextInfo.length > 0) {
-      response = `${contextInfo.join('. ')}. ${response}`;
+      response = `${contextInfo.join('. ')}.\n\n${response}`;
     }
 
     return response;
@@ -283,7 +400,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
                     ? 'bg-chat-bubble-user text-primary-foreground'
                     : 'bg-card border border-border text-foreground'
                 }`}>
-                  <p className="text-sm leading-relaxed">{message.content}</p>
+                  <MessageRenderer content={message.content} />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {formatTime(message.timestamp)}
