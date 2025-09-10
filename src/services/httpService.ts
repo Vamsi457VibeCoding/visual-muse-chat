@@ -315,6 +315,59 @@ class HttpService {
     });
   }
 
+  /**
+   * Change password for authenticated user
+   * 
+   * @param currentPassword - Current password for verification
+   * @param newPassword - New password
+   * @returns Promise<{message: string}> - Success message
+   * 
+   * Request Body:
+   * {
+   *   "current_password": "currentpassword123",
+   *   "new_password": "newpassword123"
+   * }
+   * 
+   * Expected Response:
+   * {
+   *   "message": "Password changed successfully"
+   * }
+   */
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+    if (USE_MOCK_DATA) {
+      await mockApiDelay();
+      
+      if (!currentPassword || !newPassword) {
+        throw new Error('Current password and new password are required');
+      }
+      
+      if (newPassword.length < 6) {
+        throw new Error('New password must be at least 6 characters long');
+      }
+      
+      if (currentPassword === newPassword) {
+        throw new Error('New password must be different from current password');
+      }
+      
+      // Mock password change - simulate wrong current password occasionally
+      if (currentPassword === 'wrongpassword') {
+        throw new Error('Current password is incorrect');
+      }
+      
+      return {
+        message: 'Password changed successfully'
+      };
+    }
+    
+    return this.request<{ message: string }>('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        current_password: currentPassword, 
+        new_password: newPassword 
+      }),
+    });
+  }
+
   // ====================== PROJECTS API ======================
   
   /**
