@@ -36,10 +36,10 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
         {
           selector: 'node',
           style: {
-            'background-color': 'hsl(var(--node-primary))',
-            'border-color': 'hsl(var(--primary-glow))',
+            'background-color': '#8a2be2',
+            'border-color': '#9d4edd',
             'border-width': 2,
-            'color': 'hsl(var(--primary-foreground))',
+            'color': '#ffffff',
             'label': 'data(label)',
             'text-valign': 'center',
             'text-halign': 'center',
@@ -55,8 +55,8 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
         {
           selector: 'node[type="root"]',
           style: {
-            'background-color': 'hsl(var(--primary))',
-            'border-color': 'hsl(var(--primary-glow))',
+            'background-color': '#6f2da8',
+            'border-color': '#9d4edd',
             'width': 120,
             'height': 80,
             'font-size': '14px',
@@ -66,22 +66,22 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
         {
           selector: 'node[type="secondary"]',
           style: {
-            'background-color': 'hsl(var(--node-secondary))',
-            'border-color': 'hsl(var(--accent))',
+            'background-color': '#06d6a0',
+            'border-color': '#40e0d0',
           }
         },
         {
           selector: 'node[type="accent"]',
           style: {
-            'background-color': 'hsl(var(--node-accent))',
-            'border-color': 'hsl(var(--node-warning))',
-            'color': 'hsl(var(--background))',
+            'background-color': '#ffd23f',
+            'border-color': '#ffbe0b',
+            'color': '#1a1a1a',
           }
         },
         {
           selector: 'node:selected',
           style: {
-            'border-color': 'hsl(var(--primary-glow))',
+            'border-color': '#9d4edd',
             'border-width': 3,
           }
         },
@@ -89,8 +89,8 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
           selector: 'edge',
           style: {
             'width': 2,
-            'line-color': 'hsl(var(--border))',
-            'target-arrow-color': 'hsl(var(--border))',
+            'line-color': '#4a4a4a',
+            'target-arrow-color': '#4a4a4a',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
             'control-point-step-size': 40,
@@ -99,8 +99,8 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
         {
           selector: 'edge:selected',
           style: {
-            'line-color': 'hsl(var(--primary))',
-            'target-arrow-color': 'hsl(var(--primary))',
+            'line-color': '#8a2be2',
+            'target-arrow-color': '#8a2be2',
             'width': 3,
           }
         }
