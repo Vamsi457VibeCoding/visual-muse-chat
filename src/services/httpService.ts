@@ -55,15 +55,45 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 // Mock mode flag - set to true to use mock data, false for real API
 const USE_MOCK_DATA = true;
 
+// Authentication types
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    name?: string;
+  };
+}
+
 /**
  * HTTP Service for managing API calls to the FastAPI backend
  * Handles projects, chats, messages, documents, and real-time communication
  */
 class HttpService {
   private baseURL: string;
+  private authToken: string | null = null;
 
   constructor() {
     this.baseURL = API_BASE_URL;
+  }
+
+  /**
+   * Set authentication token for API requests
+   */
+  setAuthToken(token: string) {
+    this.authToken = token;
+  }
+
+  /**
+   * Clear authentication token
+   */
+  clearAuthToken() {
+    this.authToken = null;
   }
 
   private async request<T>(
@@ -74,6 +104,7 @@ class HttpService {
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...(this.authToken && { 'Authorization': `Bearer ${this.authToken}` }),
         ...options.headers,
       },
       ...options,
@@ -97,6 +128,85 @@ class HttpService {
       });
       throw error;
     }
+  }
+
+  // ====================== AUTHENTICATION API ======================
+  
+  /**
+   * Login with email and password
+   * 
+   * @param email - User email
+   * @param password - User password  
+   * @returns Promise<LoginResponse> - Login response with token and user data
+   * 
+   * Request Body:
+   * {
+   *   "email": "user@example.com",
+   *   "password": "password123"
+   * }
+   * 
+   * Expected Response:
+   * {
+   *   "token": "jwt-token-here",
+   *   "user": {
+   *     "id": "user-uuid",
+   *     "email": "user@example.com", 
+   *     "name": "User Name"
+   *   }
+   * }
+   */
+  async login(email: string, password: string): Promise<LoginResponse> {
+    if (USE_MOCK_DATA) {
+      await mockApiDelay();
+      
+      // Mock authentication - accept any email/password for demo
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+
+      // Demo: Accept admin@example.com / password123 or any email/password
+      const mockResponse: LoginResponse = {
+        token: `mock-jwt-token-${Date.now()}`,
+        user: {
+          id: 'user-1',
+          email: email,
+          name: email === 'admin@example.com' ? 'Admin User' : 'Demo User'
+        }
+      };
+      
+      return mockResponse;
+    }
+    
+    return this.request<LoginResponse>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  }
+
+  /**
+   * Verify current token and get user data
+   * 
+   * @returns Promise<{user: User}> - Current user data
+   */
+  async verifyToken(): Promise<{ user: LoginResponse['user'] }> {
+    if (USE_MOCK_DATA) {
+      await mockApiDelay();
+      
+      if (!this.authToken) {
+        throw new Error('No token provided');
+      }
+      
+      // Mock token verification
+      return {
+        user: {
+          id: 'user-1',
+          email: 'demo@example.com',
+          name: 'Demo User'
+        }
+      };
+    }
+    
+    return this.request<{ user: LoginResponse['user'] }>('/api/auth/verify');
   }
 
   // ====================== PROJECTS API ======================
