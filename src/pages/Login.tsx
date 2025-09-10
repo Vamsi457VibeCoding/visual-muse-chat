@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -96,10 +97,20 @@ const Login = () => {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                Demo credentials: admin@example.com / password123
-              </p>
+            <div className="mt-6 space-y-4">
+              <div className="text-center">
+                <Link to="/forgot-password">
+                  <Button variant="link" className="text-accent p-0 h-auto">
+                    Forgot your password?
+                  </Button>
+                </Link>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  Demo credentials: admin@example.com / password123
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

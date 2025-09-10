@@ -209,6 +209,112 @@ class HttpService {
     return this.request<{ user: LoginResponse['user'] }>('/api/auth/verify');
   }
 
+  /**
+   * Request password reset email
+   * 
+   * @param email - User email
+   * @returns Promise<{message: string}> - Success message
+   * 
+   * Request Body:
+   * {
+   *   "email": "user@example.com"
+   * }
+   * 
+   * Expected Response:
+   * {
+   *   "message": "Password reset email sent successfully"
+   * }
+   */
+  async requestPasswordReset(email: string): Promise<{ message: string }> {
+    if (USE_MOCK_DATA) {
+      await mockApiDelay();
+      
+      if (!email) {
+        throw new Error('Email is required');
+      }
+      
+      // Mock password reset request
+      return {
+        message: 'Password reset email sent successfully'
+      };
+    }
+    
+    return this.request<{ message: string }>('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  /**
+   * Verify password reset token
+   * 
+   * @param token - Reset token from email
+   * @returns Promise<{valid: boolean}> - Token validity
+   * 
+   * Expected Response:
+   * {
+   *   "valid": true
+   * }
+   */
+  async verifyResetToken(token: string): Promise<{ valid: boolean }> {
+    if (USE_MOCK_DATA) {
+      await mockApiDelay();
+      
+      if (!token) {
+        throw new Error('Token is required');
+      }
+      
+      // Mock token verification - accept any token for demo
+      return {
+        valid: true
+      };
+    }
+    
+    return this.request<{ valid: boolean }>(`/api/auth/verify-reset-token/${token}`);
+  }
+
+  /**
+   * Reset password with token
+   * 
+   * @param token - Reset token from email
+   * @param newPassword - New password
+   * @returns Promise<{message: string}> - Success message
+   * 
+   * Request Body:
+   * {
+   *   "token": "reset-token-here",
+   *   "password": "newpassword123"
+   * }
+   * 
+   * Expected Response:
+   * {
+   *   "message": "Password reset successfully"
+   * }
+   */
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    if (USE_MOCK_DATA) {
+      await mockApiDelay();
+      
+      if (!token || !newPassword) {
+        throw new Error('Token and new password are required');
+      }
+      
+      if (newPassword.length < 6) {
+        throw new Error('Password must be at least 6 characters long');
+      }
+      
+      // Mock password reset
+      return {
+        message: 'Password reset successfully'
+      };
+    }
+    
+    return this.request<{ message: string }>('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password: newPassword }),
+    });
+  }
+
   // ====================== PROJECTS API ======================
   
   /**
