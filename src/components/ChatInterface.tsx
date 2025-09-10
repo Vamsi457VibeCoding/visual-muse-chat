@@ -42,7 +42,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
 I'm here to help you **brainstorm ideas**, organize thoughts, and enhance your visual thinking process. 
 
 ## What I Can Do:
-- **Markdown Support**: Use *formatting*, **bold text**, and \`code snippets\`
+- **Markdown Support**: Use *formatting*, **bold text**, and \`inline code\`
+- **Code Blocks**: Syntax-highlighted code with copy functionality
 - **Mathematical Formulas**: Express relationships like $E = mc^2$ or complex equations:
 
 $$\\sum_{i=1}^{n} x_i = \\frac{1}{n} \\sum_{i=1}^{n} (x_i - \\bar{x})^2$$
@@ -50,7 +51,18 @@ $$\\sum_{i=1}^{n} x_i = \\frac{1}{n} \\sum_{i=1}^{n} (x_i - \\bar{x})^2$$
 - **Document Analysis**: Upload files for context-aware responses
 - **Mind Map Integration**: Connect with your visual workspace
 
-> **Pro Tip**: Try asking me about mathematical concepts, and I'll help you visualize them with proper notation!
+### Code Example:
+\`\`\`javascript
+function mindMap(idea) {
+  return {
+    concept: idea,
+    connections: [],
+    expand: () => console.log('Growing ideas!')
+  };
+}
+\`\`\`
+
+> **Pro Tip**: Ask me about programming concepts, algorithms, or mathematical formulas!
 
 What would you like to explore today?`,
       timestamp: new Date()
@@ -161,12 +173,28 @@ Mathematical relationships found: $\\frac{d}{dx}f(x) = \\lim_{h \\to 0} \\frac{f
 - **Related topics**: Connected concepts  
 - **Actionable items**: Next steps
 
+### Code Implementation
+Here's how you might structure this programmatically:
+
+\`\`\`python
+class MindMapNode:
+    def __init__(self, concept):
+        self.concept = concept
+        self.children = []
+        self.connections = []
+    
+    def add_child(self, child_concept):
+        child = MindMapNode(child_concept)
+        self.children.append(child)
+        return child
+\`\`\`
+
 ### Mathematical Relationships
-If dealing with quantitative data, consider: $y = mx + b$ or more complex functions like:
+For quantitative analysis: $y = mx + b$ or complex functions:
 
 $$f(x) = \\int_{a}^{b} g(t) \\, dt$$
 
-Use \`color-coding\` to group related mathematical concepts.`,
+Use \`color-coding\` to group related concepts.`,
 
       `Great question! For mind mapping "${userInput}", consider organizing into main branches:
 
@@ -174,6 +202,19 @@ Use \`color-coding\` to group related mathematical concepts.`,
 2. **Effects** → Resulting outcomes
 3. **Solutions** → Potential remedies
 4. **Examples** → Real-world cases
+
+### Algorithm for Analysis
+\`\`\`javascript
+const analyzeRelationships = (causes, effects) => {
+  return causes.map(cause => ({
+    cause,
+    impact: effects.filter(effect => 
+      isRelated(cause, effect)
+    ),
+    strength: calculateCorrelation(cause, effects)
+  }));
+};
+\`\`\`
 
 > **Pro tip**: Use mathematical notation for quantifiable relationships
 
@@ -230,7 +271,28 @@ Use \`inline code\` for variable names and parameters.`,
 - Secondary influences
 - External factors
 
-### 📈 Quantitative Metrics
+### 📈 Implementation Framework
+\`\`\`typescript
+interface AnalysisFramework {
+  context: {
+    historical: string[];
+    current: string[];
+    future: string[];
+  };
+  stakeholders: {
+    primary: string[];
+    secondary: string[];
+    external: string[];
+  };
+  metrics: {
+    performance: number;
+    quality: number;
+    impact: number;
+  };
+}
+\`\`\`
+
+### Quantitative Metrics
 For measurement: $\\text{Performance} = \\frac{\\text{Output}}{\\text{Input}} \\times \\text{Quality Factor}$
 
 Consider using **bold** for key terms and *italics* for emphasis.`

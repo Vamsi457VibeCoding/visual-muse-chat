@@ -1,12 +1,62 @@
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useState } from 'react';
+import { Copy, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import 'katex/dist/katex.min.css';
 
 interface MessageRendererProps {
   content: string;
   className?: string;
 }
+
+interface CodeBlockProps {
+  language?: string;
+  children: string;
+}
+
+const CodeBlock: React.FC<CodeBlockProps> = ({ language = 'text', children }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(children);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="relative group">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleCopy}
+        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+      >
+        {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+      </Button>
+      <SyntaxHighlighter
+        language={language}
+        style={document.documentElement.classList.contains('dark') ? vscDarkPlus : vs}
+        customStyle={{
+          margin: 0,
+          borderRadius: '6px',
+          fontSize: '12px',
+          background: 'hsl(var(--muted))',
+        }}
+        codeTagProps={{
+          style: {
+            fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+          }
+        }}
+      >
+        {children}
+      </SyntaxHighlighter>
+    </div>
+  );
+};
 
 const MessageRenderer: React.FC<MessageRendererProps> = ({ content, className = "" }) => {
   return (
@@ -22,18 +72,17 @@ const MessageRenderer: React.FC<MessageRendererProps> = ({ content, className = 
           p: ({ children }) => <p className="text-sm text-foreground leading-relaxed">{children}</p>,
           code: ({ node, className, children, ...props }) => {
             const match = /language-(\w+)/.exec(className || '');
+            const language = match ? match[1] : 'text';
             const isInline = !match;
             
             return isInline ? (
-              <code className="bg-muted text-foreground px-1 py-0.5 rounded text-xs font-mono" {...props}>
+              <code className="bg-muted text-foreground px-1 py-0.5 rounded text-xs font-mono border" {...props}>
                 {children}
               </code>
             ) : (
-              <pre className="bg-muted border border-border rounded-md p-3 overflow-x-auto">
-                <code className="text-foreground text-xs font-mono" {...props}>
-                  {children}
-                </code>
-              </pre>
+              <CodeBlock language={language}>
+                {String(children).replace(/\n$/, '')}
+              </CodeBlock>
             );
           },
           blockquote: ({ children }) => (
