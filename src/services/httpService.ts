@@ -1,4 +1,15 @@
 import { toast } from "@/components/ui/use-toast";
+import { 
+  mockProjects, 
+  mockChats, 
+  mockMessages, 
+  mockDocuments,
+  getMockProject,
+  getMockChats,
+  getMockMessages,
+  getMockDocuments,
+  mockApiDelay
+} from "@/data/mockData";
 
 // Types for API responses
 export interface Project {
@@ -40,6 +51,9 @@ export interface Document {
 
 // Base API configuration
 const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+// Mock mode flag - set to true to use mock data, false for real API
+const USE_MOCK_DATA = true;
 
 /**
  * HTTP Service for managing API calls to the FastAPI backend
@@ -105,6 +119,10 @@ class HttpService {
    * ]
    */
   async getProjects(): Promise<Project[]> {
+    if (USE_MOCK_DATA) {
+      await mockApiDelay();
+      return [...mockProjects];
+    }
     return this.request<Project[]>('/api/projects');
   }
 
@@ -255,18 +273,11 @@ class HttpService {
    * ]
    */
   async getChats(projectId: string): Promise<Chat[]> {
+    if (USE_MOCK_DATA) {
+      await mockApiDelay();
+      return [...getMockChats(projectId)];
+    }
     return this.request<Chat[]>(`/api/projects/${projectId}/chats`);
-  }
-
-  /**
-   * Get a specific chat by ID
-   * 
-   * @param projectId - Project UUID
-   * @param chatId - Chat UUID
-   * @returns Promise<Chat> - Single chat object
-   */
-  async getChat(projectId: string, chatId: string): Promise<Chat> {
-    return this.request<Chat>(`/api/projects/${projectId}/chats/${chatId}`);
   }
 
   /**
@@ -283,10 +294,46 @@ class HttpService {
    * }
    */
   async createChat(projectId: string, data: Omit<Chat, 'id' | 'project_id' | 'created_at' | 'updated_at'>): Promise<Chat> {
+    if (USE_MOCK_DATA) {
+      await mockApiDelay();
+      const newChat: Chat = {
+        id: `chat-${Date.now()}`,
+        project_id: projectId,
+        name: data.name,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      if (!mockChats[projectId]) {
+        mockChats[projectId] = [];
+      }
+      mockChats[projectId].push(newChat);
+      return { ...newChat };
+    }
     return this.request<Chat>(`/api/projects/${projectId}/chats`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  }
+
+  /**
+   * Get a specific chat by ID
+   * 
+   * @param projectId - Project UUID
+   * @param chatId - Chat UUID
+   * @returns Promise<Chat> - Single chat object
+   */
+  async getChat(projectId: string, chatId: string): Promise<Chat> {
+    if (USE_MOCK_DATA) {
+      await mockApiDelay();
+      const chats = getMockChats(projectId);
+      const chat = chats.find(c => c.id === chatId);
+      if (!chat) {
+        throw new Error('Chat not found');
+      }
+      return { ...chat };
+    }
+    return this.request<Chat>(`/api/projects/${projectId}/chats/${chatId}`);
   }
 
   /**
@@ -350,6 +397,10 @@ class HttpService {
    * ]
    */
   async getMessages(projectId: string, chatId: string): Promise<Message[]> {
+    if (USE_MOCK_DATA) {
+      await mockApiDelay();
+      return [...getMockMessages(chatId)];
+    }
     return this.request<Message[]>(`/api/projects/${projectId}/chats/${chatId}/messages`);
   }
 
