@@ -64,17 +64,20 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
 
   // Load all projects
   const loadProjects = async () => {
+    console.log('🚀 Loading projects...');
     setIsLoadingProjects(true);
     try {
       const projectData = await httpService.getProjects();
+      console.log('✅ Projects loaded:', projectData);
       setProjects(projectData);
       
       // Auto-select first project if none selected
       if (!currentProject && projectData.length > 0) {
+        console.log('🎯 Auto-selecting first project:', projectData[0].name);
         await selectProject(projectData[0].id);
       }
     } catch (error) {
-      console.error('Failed to load projects:', error);
+      console.error('❌ Failed to load projects:', error);
       toast({
         title: "Error",
         description: "Failed to load projects",
@@ -82,6 +85,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
       });
     } finally {
       setIsLoadingProjects(false);
+      console.log('🏁 Loading projects complete');
     }
   };
 
@@ -304,7 +308,11 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({ children }) =>
 
   // Load projects on mount
   useEffect(() => {
-    loadProjects();
+    console.log('🔄 ProjectProvider mounted, starting to load projects...');
+    loadProjects().catch(error => {
+      console.error('💥 Critical error in loadProjects:', error);
+      setIsLoadingProjects(false);
+    });
   }, []);
 
   const value: ProjectContextType = {

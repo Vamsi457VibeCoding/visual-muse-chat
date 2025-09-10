@@ -120,7 +120,9 @@ class HttpService {
    */
   async getProjects(): Promise<Project[]> {
     if (USE_MOCK_DATA) {
+      console.log('📊 Using mock data for projects');
       await mockApiDelay();
+      console.log('⏰ Mock delay complete, returning projects:', mockProjects.length);
       return [...mockProjects];
     }
     return this.request<Project[]>('/api/projects');
