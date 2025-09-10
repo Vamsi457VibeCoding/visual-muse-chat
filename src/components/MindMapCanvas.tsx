@@ -21,7 +21,6 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number; nodeId: string } | null>(null);
   const [dragEnd, setDragEnd] = useState<{ x: number; y: number } | null>(null);
-  const [isConnectMode, setIsConnectMode] = useState(false);
 
   useEffect(() => {
     if (!cyRef.current) return;
@@ -117,7 +116,7 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
 
     // Event listeners
     cytoscapeInstance.on('tap', 'node', (evt) => {
-      if (!isConnectMode) {
+      if (!isDragging) {
         const node = evt.target;
         const nodeData = node.data();
         setSelectedNode(nodeData);
@@ -126,32 +125,30 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
     });
 
     cytoscapeInstance.on('tap', (evt) => {
-      if (evt.target === cytoscapeInstance && !isConnectMode) {
+      if (evt.target === cytoscapeInstance && !isDragging) {
         setSelectedNode(null);
         onNodeSelect?.(null);
       }
     });
 
-    // Connection drag handlers
+    // Connection drag handlers - always active
     cytoscapeInstance.on('mousedown', 'node', (evt) => {
-      if (isConnectMode) {
-        evt.preventDefault();
-        const node = evt.target;
-        const nodeData = node.data();
-        const position = node.renderedPosition();
-        
-        setIsDragging(true);
-        setDragStart({
-          x: position.x,
-          y: position.y,
-          nodeId: nodeData.id
-        });
-        setDragEnd({ x: position.x, y: position.y });
-      }
+      evt.preventDefault();
+      const node = evt.target;
+      const nodeData = node.data();
+      const position = node.renderedPosition();
+      
+      setIsDragging(true);
+      setDragStart({
+        x: position.x,
+        y: position.y,
+        nodeId: nodeData.id
+      });
+      setDragEnd({ x: position.x, y: position.y });
     });
 
     cytoscapeInstance.on('mousemove', (evt) => {
-      if (isDragging && dragStart && isConnectMode) {
+      if (isDragging && dragStart) {
         const containerRect = cyRef.current?.getBoundingClientRect();
         if (containerRect) {
           setDragEnd({
@@ -163,7 +160,7 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
     });
 
     cytoscapeInstance.on('mouseup', 'node', (evt) => {
-      if (isDragging && dragStart && isConnectMode) {
+      if (isDragging && dragStart) {
         const targetNode = evt.target;
         const targetData = targetNode.data();
         
@@ -186,7 +183,7 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
     return () => {
       cytoscapeInstance.destroy();
     };
-  }, [onNodeSelect, isConnectMode, isDragging, dragStart]);
+  }, [onNodeSelect, isDragging, dragStart]);
 
   const resetDragState = () => {
     setIsDragging(false);
@@ -225,8 +222,8 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
       position
     });
 
-    // Connect to selected node if one exists and not in connect mode
-    if (selectedNode && !isConnectMode) {
+    // Connect to selected node if one exists and not dragging
+    if (selectedNode && !isDragging) {
       createEdge(selectedNode.id, nodeId);
     }
 
@@ -258,17 +255,6 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
     setSelectedNode({ ...selectedNode, label: editText.trim() });
   };
 
-  const startConnecting = () => {
-    setIsConnectMode(true);
-    setSelectedNode(null);
-    onNodeSelect?.(null);
-  };
-
-  const cancelConnecting = () => {
-    setIsConnectMode(false);
-    resetDragState();
-  };
-
   const runLayout = () => {
     if (!cy) return;
 
@@ -292,28 +278,6 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
         }}
       />
       
-      {/* Connection Mode Banner */}
-      {isConnectMode && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
-          <div className="bg-primary/90 backdrop-blur-sm text-primary-foreground px-4 py-2 rounded-lg shadow-glow border border-primary-glow">
-            <div className="flex items-center gap-2">
-              <Link className="w-4 h-4" />
-              <span className="font-medium">
-                Drag from one node to another to create connections
-              </span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={cancelConnecting}
-                className="ml-2 h-6 px-2 text-primary-foreground hover:bg-primary-foreground/20"
-              >
-                Exit
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Drag Connection Line */}
       {isDragging && dragStart && dragEnd && (
         <svg 
@@ -375,16 +339,6 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
         <Button 
           variant="ghost" 
           size="sm"
-          onClick={startConnecting}
-          className={`hover:bg-accent/20 ${isConnectMode ? 'bg-primary/20 text-primary' : ''}`}
-        >
-          <Link className="w-4 h-4 mr-1" />
-          {isConnectMode ? 'Connecting...' : 'Connect'}
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="sm"
           onClick={runLayout}
           className="hover:bg-accent/20"
         >
@@ -392,7 +346,7 @@ const MindMapCanvas: React.FC<MindMapCanvasProps> = ({ onNodeSelect }) => {
           Layout
         </Button>
         
-        {selectedNode && !isConnectMode && (
+        {selectedNode && !isDragging && (
           <>
             <Button 
               variant="ghost" 
