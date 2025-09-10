@@ -5,7 +5,9 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Send, MessageCircle, Bot, User, Settings, Upload, FileText } from 'lucide-react';
+import { Send, MessageCircle, Bot, User, Settings, Upload, FileText, Brain, BookOpen } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import DocumentUpload from './DocumentUpload';
 import DocumentViewer from './DocumentViewer';
 import { DocumentStorage, Document } from '@/utils/DocumentStorage';
@@ -44,6 +46,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
   const [showDocumentUpload, setShowDocumentUpload] = useState(false);
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<Document[]>([]);
+  const [useDocumentsOnly, setUseDocumentsOnly] = useState(false);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -64,7 +67,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: generateAIResponse(inputMessage, selectedNode, selectedDocuments),
+        content: generateAIResponse(inputMessage, selectedNode, selectedDocuments, useDocumentsOnly),
         timestamp: new Date()
       };
 
@@ -73,7 +76,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
     }, 1000 + Math.random() * 2000);
   };
 
-  const generateAIResponse = (userInput: string, node?: any, documents?: Document[]): string => {
+  const generateAIResponse = (userInput: string, node?: any, documents?: Document[], documentsOnly: boolean = false): string => {
     const contextInfo = [];
     
     if (documents && documents.length > 0) {
@@ -84,6 +87,30 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
       contextInfo.push(`Current node: "${node.label}"`);
     }
 
+    // Document-only mode responses
+    if (documentsOnly) {
+      if (!documents || documents.length === 0) {
+        return "I can only respond based on uploaded documents, but no documents are currently selected. Please upload and select documents to continue, or switch to parametric knowledge mode.";
+      }
+      
+      const documentResponses = [
+        `Based on the uploaded documents regarding "${userInput}", I found relevant information that suggests organizing this into: key themes from the documents, supporting evidence, and practical applications.`,
+        `According to the documents you've provided about "${userInput}", here are the main points to consider for your mind map: document insights, cross-references, and implementation notes.`,
+        `From the uploaded materials on "${userInput}", I can help you structure this by: document-based categories, source citations, and evidence-backed connections.`,
+        `The documents contain valuable information about "${userInput}". Consider mapping: documented facts, referenced sources, and verified relationships.`,
+        `Based solely on your uploaded documents regarding "${userInput}", here's what the materials suggest: primary concepts, supporting details, and documented outcomes.`
+      ];
+      
+      let response = documentResponses[Math.floor(Math.random() * documentResponses.length)];
+      
+      if (contextInfo.length > 0) {
+        response = `${contextInfo.join('. ')}. ${response}`;
+      }
+      
+      return response;
+    }
+
+    // Parametric knowledge mode responses
     const responses = [
       `That's an interesting idea! Based on "${userInput}", I suggest creating sub-nodes for: key concepts, related topics, and actionable items.`,
       `Great question! For mind mapping "${userInput}", consider organizing it into main branches: causes, effects, solutions, and examples.`,
@@ -173,6 +200,32 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
             ))}
           </SelectContent>
         </Select>
+
+        {/* Response Mode Toggle */}
+        <div className="mt-3 flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border">
+          <div className="flex items-center gap-2">
+            {useDocumentsOnly ? (
+              <BookOpen className="w-4 h-4 text-primary" />
+            ) : (
+              <Brain className="w-4 h-4 text-primary" />
+            )}
+            <Label htmlFor="response-mode" className="text-sm font-medium">
+              {useDocumentsOnly ? 'Documents Only' : 'Parametric Knowledge'}
+            </Label>
+          </div>
+          <Switch
+            id="response-mode"
+            checked={useDocumentsOnly}
+            onCheckedChange={setUseDocumentsOnly}
+          />
+        </div>
+        
+        <p className="text-xs text-muted-foreground mt-1 px-1">
+          {useDocumentsOnly 
+            ? 'AI will only respond based on uploaded documents' 
+            : 'AI will use general knowledge and documents (if selected)'
+          }
+        </p>
 
         {selectedNode && (
           <div className="mt-2 p-2 bg-primary/10 rounded-md border border-primary/20">
@@ -283,7 +336,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
         </div>
         
         <p className="text-xs text-muted-foreground mt-2 text-center">
-          Using {llmOptions.find(opt => opt.value === selectedLLM)?.label} • Press Enter to send
+          Using {llmOptions.find(opt => opt.value === selectedLLM)?.label} • {useDocumentsOnly ? 'Documents Only' : 'Parametric'} • Press Enter to send
           {selectedDocuments.length > 0 && ` • ${selectedDocuments.length} document(s) in context`}
         </p>
       </div>
