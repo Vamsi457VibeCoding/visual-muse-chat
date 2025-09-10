@@ -58,16 +58,13 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language = 'text', children }) =>
   );
 };
 
-// Force cache refresh - MessageRenderer component
 const MessageRenderer: React.FC<MessageRendererProps> = ({ content, className = "" }) => {
-  console.log('MessageRenderer component loaded successfully');
   return (
     <div className={`prose prose-sm max-w-none prose-p:leading-relaxed prose-headings:mb-2 prose-headings:mt-4 first:prose-headings:mt-0 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeKatex]}
         components={{
-          // Custom styling for different elements
           h1: ({ children }) => <h1 className="text-lg font-bold text-foreground">{children}</h1>,
           h2: ({ children }) => <h2 className="text-base font-semibold text-foreground">{children}</h2>,
           h3: ({ children }) => <h3 className="text-sm font-medium text-foreground">{children}</h3>,
@@ -132,6 +129,4 @@ const MessageRenderer: React.FC<MessageRendererProps> = ({ content, className = 
   );
 };
 
-// Ensure proper default export
 export default MessageRenderer;
-console.log('MessageRenderer module exported');
