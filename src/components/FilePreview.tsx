@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Document } from '@/utils/DocumentStorage';
+// Force refresh import
 import MessageRenderer from './MessageRenderer';
 import { Button } from '@/components/ui/button';
 import { Download, ExternalLink } from 'lucide-react';

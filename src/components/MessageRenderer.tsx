@@ -58,7 +58,9 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language = 'text', children }) =>
   );
 };
 
+// Force cache refresh - MessageRenderer component
 const MessageRenderer: React.FC<MessageRendererProps> = ({ content, className = "" }) => {
+  console.log('MessageRenderer component loaded successfully');
   return (
     <div className={`prose prose-sm max-w-none prose-p:leading-relaxed prose-headings:mb-2 prose-headings:mt-4 first:prose-headings:mt-0 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic ${className}`}>
       <ReactMarkdown
@@ -130,4 +132,6 @@ const MessageRenderer: React.FC<MessageRendererProps> = ({ content, className = 
   );
 };
 
+// Ensure proper default export
 export default MessageRenderer;
+console.log('MessageRenderer module exported');
