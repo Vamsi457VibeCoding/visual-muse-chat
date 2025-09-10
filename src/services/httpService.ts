@@ -50,7 +50,7 @@ export interface Document {
 }
 
 // Base API configuration
-const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Mock mode flag - set to true to use mock data, false for real API
 const USE_MOCK_DATA = true;
