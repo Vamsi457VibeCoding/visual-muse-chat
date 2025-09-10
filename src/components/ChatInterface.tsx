@@ -4,7 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Send, MessageCircle, Bot, User, Settings } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Send, MessageCircle, Bot, User, Settings, Upload, FileText } from 'lucide-react';
+import DocumentUpload from './DocumentUpload';
+import DocumentViewer from './DocumentViewer';
+import { DocumentStorage, Document } from '@/utils/DocumentStorage';
 
 interface Message {
   id: string;
@@ -30,13 +34,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
     {
       id: '1',
       type: 'ai',
-      content: 'Hello! I\'m your AI assistant for mind mapping. I can help you brainstorm ideas, organize thoughts, and enhance your visual thinking process. What would you like to explore today?',
+      content: 'Hello! I\'m your AI assistant for mind mapping. I can help you brainstorm ideas, organize thoughts, and enhance your visual thinking process. You can also upload documents for me to reference. What would you like to explore today?',
       timestamp: new Date()
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [selectedLLM, setSelectedLLM] = useState('gpt-4');
   const [isLoading, setIsLoading] = useState(false);
+  const [showDocumentUpload, setShowDocumentUpload] = useState(false);
+  const [showDocumentViewer, setShowDocumentViewer] = useState(false);
+  const [selectedDocuments, setSelectedDocuments] = useState<Document[]>([]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -52,12 +59,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
     setInputMessage('');
     setIsLoading(true);
 
-    // Simulate AI response (replace with actual API call)
+    // Simulate AI response with document context
     setTimeout(() => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: generateAIResponse(inputMessage, selectedNode),
+        content: generateAIResponse(inputMessage, selectedNode, selectedDocuments),
         timestamp: new Date()
       };
 
@@ -66,7 +73,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
     }, 1000 + Math.random() * 2000);
   };
 
-  const generateAIResponse = (userInput: string, node?: any): string => {
+  const generateAIResponse = (userInput: string, node?: any, documents?: Document[]): string => {
+    const contextInfo = [];
+    
+    if (documents && documents.length > 0) {
+      contextInfo.push(`I have access to ${documents.length} document(s): ${documents.map(d => d.name).join(', ')}`);
+    }
+    
+    if (node) {
+      contextInfo.push(`Current node: "${node.label}"`);
+    }
+
     const responses = [
       `That's an interesting idea! Based on "${userInput}", I suggest creating sub-nodes for: key concepts, related topics, and actionable items.`,
       `Great question! For mind mapping "${userInput}", consider organizing it into main branches: causes, effects, solutions, and examples.`,
@@ -75,11 +92,28 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
       `Building on "${userInput}", you might want to explore: background context, current status, future implications, and key stakeholders.`
     ];
 
-    if (node) {
-      return `Since you have "${node.label}" selected, I can help you expand this node. ${responses[Math.floor(Math.random() * responses.length)]}`;
+    let response = responses[Math.floor(Math.random() * responses.length)];
+    
+    if (contextInfo.length > 0) {
+      response = `${contextInfo.join('. ')}. ${response}`;
     }
 
-    return responses[Math.floor(Math.random() * responses.length)];
+    return response;
+  };
+
+  const handleDocumentUploaded = (document: Document) => {
+    // Auto-select newly uploaded documents
+    setSelectedDocuments(prev => [...prev, document]);
+  };
+
+  const handleDocumentSelect = (document: Document) => {
+    if (!selectedDocuments.find(d => d.id === document.id)) {
+      setSelectedDocuments(prev => [...prev, document]);
+    }
+  };
+
+  const removeDocument = (documentId: string) => {
+    setSelectedDocuments(prev => prev.filter(d => d.id !== documentId));
   };
 
   const formatTime = (date: Date) => {
@@ -91,11 +125,36 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5 text-primary" />
             <h2 className="font-semibold text-foreground">AI Assistant</h2>
           </div>
-          <Settings className="w-4 h-4 text-muted-foreground" />
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDocumentViewer(true)}
+              className="hover:bg-accent/20"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Documents
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDocumentUpload(true)}
+              className="hover:bg-accent/20"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload
+            </Button>
+          </div>
+        </div>
+        
+        <Settings className="w-4 h-4 text-muted-foreground" />
         </div>
 
         {/* LLM Selection */}
@@ -117,7 +176,26 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
 
         {selectedNode && (
           <div className="mt-2 p-2 bg-primary/10 rounded-md border border-primary/20">
-            <p className="text-xs text-primary font-medium">Selected: {selectedNode.label}</p>
+            <p className="text-xs text-primary font-medium">Selected Node: {selectedNode.label}</p>
+          </div>
+        )}
+
+        {selectedDocuments.length > 0 && (
+          <div className="mt-2 space-y-1">
+            <p className="text-xs text-muted-foreground">Referenced Documents:</p>
+            <div className="flex flex-wrap gap-1">
+              {selectedDocuments.map(doc => (
+                <Badge 
+                  key={doc.id}
+                  variant="secondary" 
+                  className="text-xs cursor-pointer hover:bg-destructive/20"
+                  onClick={() => removeDocument(doc.id)}
+                >
+                  {doc.name}
+                  <span className="ml-1">×</span>
+                </Badge>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -206,8 +284,33 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ selectedNode, onNodeUpdat
         
         <p className="text-xs text-muted-foreground mt-2 text-center">
           Using {llmOptions.find(opt => opt.value === selectedLLM)?.label} • Press Enter to send
+          {selectedDocuments.length > 0 && ` • ${selectedDocuments.length} document(s) in context`}
         </p>
       </div>
+
+      {/* Document Upload Modal */}
+      {showDocumentUpload && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <DocumentUpload
+            onDocumentUploaded={handleDocumentUploaded}
+            onClose={() => setShowDocumentUpload(false)}
+          />
+        </div>
+      )}
+
+      {/* Document Viewer Modal */}
+      {showDocumentViewer && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <DocumentViewer
+            onClose={() => setShowDocumentViewer(false)}
+            onUploadClick={() => {
+              setShowDocumentViewer(false);
+              setShowDocumentUpload(true);
+            }}
+            onDocumentSelect={handleDocumentSelect}
+          />
+        </div>
+      )}
     </Card>
   );
 };
