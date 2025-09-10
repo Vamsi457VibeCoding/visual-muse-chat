@@ -25,18 +25,18 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onDocumentUploaded, onC
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter(file => {
-      if (!DocumentStorage.isTextFile(file)) {
+      if (!DocumentStorage.isTextFile(file) && !DocumentStorage.isImageFile(file) && !DocumentStorage.isBinaryFile(file)) {
         toast({
           title: "Unsupported file type",
-          description: `${file.name} is not a supported text file`,
+          description: `${file.name} is not a supported file type`,
           variant: "destructive",
         });
         return false;
       }
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit for all files
         toast({
           title: "File too large",
-          description: `${file.name} exceeds 5MB limit`,
+          description: `${file.name} exceeds 10MB limit`,
           variant: "destructive",
         });
         return false;
@@ -124,7 +124,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onDocumentUploaded, onC
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".txt,.md,.csv,.json,.html,.css,.js,.ts,.jsx,.tsx"
+            accept=".txt,.md,.csv,.json,.html,.css,.js,.ts,.jsx,.tsx,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.svg,.webp"
             onChange={handleFileSelect}
             className="hidden"
           />
@@ -137,7 +137,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onDocumentUploaded, onC
             Select Files
           </Button>
           <p className="text-xs text-muted-foreground mt-1">
-            Supported: .txt, .md, .csv, .json, .html, .css, .js, .ts, .jsx, .tsx (max 5MB each)
+            Supported: Text files, Images (JPG, PNG, GIF, SVG, WebP), PDFs, MS Office files (max 10MB each)
           </p>
         </div>
 

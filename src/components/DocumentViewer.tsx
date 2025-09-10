@@ -13,10 +13,16 @@ import {
   Eye, 
   X,
   FolderPlus,
-  Upload
+  Upload,
+  FileText,
+  FileSpreadsheet,
+  FileImage,
+  FileVideo,
+  Files
 } from 'lucide-react';
 import { DocumentStorage, Document } from '@/utils/DocumentStorage';
 import { useToast } from '@/hooks/use-toast';
+import { FilePreview } from './FilePreview';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +53,8 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showCreateFolder, setShowCreateFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -78,6 +86,19 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
     });
   };
 
+  const createFolder = () => {
+    if (newFolderName.trim()) {
+      DocumentStorage.createFolder(newFolderName.trim());
+      loadDocuments();
+      setNewFolderName('');
+      setShowCreateFolder(false);
+      toast({
+        title: "Folder created",
+        description: `Folder "${newFolderName}" has been created`,
+      });
+    }
+  };
+
   const deleteFolder = (folderName: string) => {
     DocumentStorage.deleteFolder(folderName);
     loadDocuments();
@@ -103,7 +124,33 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
   const getFileIcon = (fileName: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase();
-    return <File className="w-4 h-4" />;
+    
+    switch (ext) {
+      case 'pdf':
+        return <Files className="w-4 h-4 text-red-500" />;
+      case 'doc':
+      case 'docx':
+        return <FileText className="w-4 h-4 text-blue-500" />;
+      case 'xls':
+      case 'xlsx':
+      case 'csv':
+        return <FileSpreadsheet className="w-4 h-4 text-green-500" />;
+      case 'ppt':
+      case 'pptx':
+        return <FileVideo className="w-4 h-4 text-orange-500" />;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'svg':
+      case 'webp':
+        return <FileImage className="w-4 h-4 text-purple-500" />;
+      case 'md':
+      case 'markdown':
+        return <FileText className="w-4 h-4 text-gray-500" />;
+      default:
+        return <File className="w-4 h-4" />;
+    }
   };
 
   const formatDate = (date: Date) => {
@@ -123,6 +170,10 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-lg font-semibold text-foreground">Documents</h3>
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowCreateFolder(true)}>
+              <FolderPlus className="w-4 h-4 mr-2" />
+              New Folder
+            </Button>
             <Button variant="outline" size="sm" onClick={onUploadClick}>
               <Upload className="w-4 h-4 mr-2" />
               Upload
@@ -257,6 +308,31 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
         )}
       </ScrollArea>
 
+      {/* Create Folder Dialog */}
+      <Dialog open={showCreateFolder} onOpenChange={setShowCreateFolder}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Folder</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Folder name..."
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && createFolder()}
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCreateFolder(false)}>
+                Cancel
+              </Button>
+              <Button onClick={createFolder} disabled={!newFolderName.trim()}>
+                Create
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Document Preview Dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="max-w-4xl max-h-[80vh]">
@@ -267,9 +343,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[60vh] mt-4">
-            <pre className="whitespace-pre-wrap text-sm p-4 bg-muted rounded">
-              {selectedDocument?.content}
-            </pre>
+            {selectedDocument && <FilePreview document={selectedDocument} />}
           </ScrollArea>
         </DialogContent>
       </Dialog>

@@ -82,12 +82,27 @@ export class DocumentStorage {
     return this.getDocuments().filter(doc => doc.folder === folderName);
   }
 
-  static readFileAsText(file: File): Promise<string> {
+  static async readFileAsText(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target?.result as string);
-      reader.onerror = reject;
-      reader.readAsText(file);
+      
+      if (this.isImageFile(file)) {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      } else if (this.isBinaryFile(file)) {
+        reader.onload = (e) => {
+          const result = e.target?.result as ArrayBuffer;
+          const base64 = btoa(new Uint8Array(result).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      } else {
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsText(file);
+      }
     });
   }
 
@@ -115,5 +130,18 @@ export class DocumentStorage {
     
     return textTypes.includes(file.type) || 
            textExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+  }
+
+  static isImageFile(file: File): boolean {
+    const imageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp'];
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp'];
+    
+    return imageTypes.includes(file.type) || 
+           imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+  }
+
+  static isBinaryFile(file: File): boolean {
+    const binaryExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'];
+    return binaryExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
   }
 }
