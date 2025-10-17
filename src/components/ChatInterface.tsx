@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Send, MessageCircle, Bot, User, Settings, Upload, FileText, Brain, BookOpen } from 'lucide-react';
+import { Send, MessageCircle, Bot, User, Settings, Upload, FileText, Brain, BookOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import DocumentUpload from './DocumentUpload';
@@ -364,7 +364,22 @@ Consider using **bold** for key terms and *italics* for emphasis.`
           </div>
         </div>
         
-        <Settings className="w-4 h-4 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowCitationsSidebar(!showCitationsSidebar)}
+            className="hover:bg-accent/20"
+            title={showCitationsSidebar ? "Hide Citations" : "Show Citations"}
+          >
+            {showCitationsSidebar ? (
+              <PanelRightClose className="w-4 h-4" />
+            ) : (
+              <PanelRightOpen className="w-4 h-4" />
+            )}
+          </Button>
+          <Settings className="w-4 h-4 text-muted-foreground" />
+        </div>
         </div>
 
         {/* LLM Selection */}
