@@ -1,18 +1,26 @@
 import { useState, useEffect } from 'react';
-import { Document } from '@/utils/DocumentStorage';
-// Force refresh import
+import { Document as DocStorageType } from '@/utils/DocumentStorage';
 import MessageRenderer from './MessageRenderer';
 import { Button } from '@/components/ui/button';
-import { Download, ExternalLink } from 'lucide-react';
+import { Download, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { Document as PDFDocument, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+
+// Configure PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 interface FilePreviewProps {
-  document: Document;
+  document: DocStorageType;
 }
 
 export const FilePreview: React.FC<FilePreviewProps> = ({ document }) => {
   const [processedContent, setProcessedContent] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pdfData, setPdfData] = useState<string | null>(null);
 
   const getFileExtension = (fileName: string) => {
     return fileName.split('.').pop()?.toLowerCase() || '';
@@ -65,6 +73,11 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ document }) => {
             setProcessedContent(document.content);
             break;
             
+          case 'txt':
+          case 'log':
+            setProcessedContent('```\n' + document.content + '\n```');
+            break;
+            
           case 'xls':
           case 'xlsx':
             const excelContent = await processExcelContent(document.content);
@@ -95,22 +108,27 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ document }) => {
             break;
             
           case 'pdf':
-            setProcessedContent('PDF preview not yet supported. Please download the file to view.');
+            // Prepare PDF data for react-pdf
+            const pdfBase64 = document.content.startsWith('data:') 
+              ? document.content 
+              : `data:application/pdf;base64,${document.content}`;
+            setPdfData(pdfBase64);
+            setProcessedContent(''); // Clear text content for PDF
             break;
             
           case 'doc':
           case 'docx':
-            setProcessedContent('Word document preview not yet supported. Please download the file to view.');
+            setProcessedContent('**Word Document Preview**\n\nTo view the full document, please download the file. DOCX files require special processing for complete preview.');
             break;
             
           case 'ppt':
           case 'pptx':
-            setProcessedContent('PowerPoint preview not yet supported. Please download the file to view.');
+            setProcessedContent('**PowerPoint Preview**\n\nTo view the full presentation, please download the file.');
             break;
             
           default:
             // For other text files
-            setProcessedContent(document.content);
+            setProcessedContent('```\n' + document.content + '\n```');
         }
       } catch (error) {
         console.error('Error processing file content:', error);
@@ -154,6 +172,18 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ document }) => {
     URL.revokeObjectURL(url);
   };
 
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+    setPageNumber(1);
+  };
+
+  const changePage = (offset: number) => {
+    setPageNumber(prevPageNumber => prevPageNumber + offset);
+  };
+
+  const previousPage = () => changePage(-1);
+  const nextPage = () => changePage(1);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-40">
@@ -174,11 +204,57 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ document }) => {
         </Button>
       </div>
       
-      <div className="border border-border rounded-lg p-4 bg-muted/20">
-        {processedContent.includes('not yet supported') ? (
+      <div className="border border-border rounded-lg p-4 bg-muted/20 max-h-[600px] overflow-auto">
+        {pdfData ? (
+          <div className="space-y-4">
+            <PDFDocument
+              file={pdfData}
+              onLoadSuccess={onDocumentLoadSuccess}
+              loading={
+                <div className="flex items-center justify-center h-40">
+                  <div className="text-muted-foreground">Loading PDF...</div>
+                </div>
+              }
+            >
+              <Page 
+                pageNumber={pageNumber} 
+                renderTextLayer={true}
+                renderAnnotationLayer={true}
+                className="mx-auto"
+                width={Math.min(window.innerWidth * 0.4, 600)}
+              />
+            </PDFDocument>
+            
+            {numPages && numPages > 1 && (
+              <div className="flex items-center justify-center gap-4 pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={previousPage}
+                  disabled={pageNumber <= 1}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {pageNumber} of {numPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={nextPage}
+                  disabled={pageNumber >= numPages}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : processedContent.includes('not yet supported') || processedContent.includes('require special processing') ? (
           <div className="text-center py-8 text-muted-foreground">
             <ExternalLink className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>{processedContent}</p>
+            <MessageRenderer content={processedContent} />
           </div>
         ) : (
           <MessageRenderer content={processedContent} />
