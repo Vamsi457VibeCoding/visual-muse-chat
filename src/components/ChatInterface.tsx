@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import DocumentUpload from './DocumentUpload';
 import DocumentViewer from './DocumentViewer';
 import MessageRenderer from './MessageRenderer';
+import CitationsSidebar from './CitationsSidebar';
 import { DocumentStorage, Document } from '@/utils/DocumentStorage';
 
 interface Message {
@@ -75,6 +76,7 @@ What would you like to explore today?`,
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<Document[]>([]);
   const [useDocumentsOnly, setUseDocumentsOnly] = useState(false);
+  const [showCitationsSidebar, setShowCitationsSidebar] = useState(true);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -327,7 +329,9 @@ Consider using **bold** for key terms and *italics* for emphasis.`
   };
 
   return (
-    <Card className="h-full flex flex-col bg-chat-bg border-canvas-border">
+    <div className="h-full flex gap-4">
+      {/* Main Chat Area */}
+      <Card className="flex-1 flex flex-col bg-chat-bg border-canvas-border">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
@@ -544,6 +548,17 @@ Consider using **bold** for key terms and *italics* for emphasis.`
         </div>
       )}
     </Card>
+
+    {/* Citations and Documents Sidebar */}
+    {showCitationsSidebar && (
+      <div className="w-80 flex-shrink-0">
+        <CitationsSidebar 
+          documents={selectedDocuments}
+          onClose={() => setShowCitationsSidebar(false)}
+        />
+      </div>
+    )}
+  </div>
   );
 };
 
