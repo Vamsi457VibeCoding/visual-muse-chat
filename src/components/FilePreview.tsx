@@ -4,6 +4,7 @@ import MessageRenderer from './MessageRenderer';
 import { Button } from '@/components/ui/button';
 import { Download, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import mammoth from 'mammoth';
 import { Document as PDFDocument, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -46,6 +47,23 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ document }) => {
     } catch (error) {
       console.error('Error processing Excel file:', error);
       return 'Error: Unable to process Excel file content.';
+    }
+  };
+
+  const processDocxContent = async (content: string) => {
+    try {
+      // Convert base64 to array buffer
+      const binaryString = atob(content);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      const result = await mammoth.convertToHtml({ arrayBuffer: bytes.buffer });
+      return result.value; // HTML content
+    } catch (error) {
+      console.error('Error processing DOCX file:', error);
+      return 'Error: Unable to process DOCX file content.';
     }
   };
 
@@ -121,7 +139,8 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ document }) => {
             
           case 'doc':
           case 'docx':
-            setProcessedContent('**Word Document Preview**\n\nTo view the full document, please download the file. DOCX files require special processing for complete preview.');
+            const docxHtml = await processDocxContent(document.content);
+            setProcessedContent(docxHtml);
             break;
             
           case 'ppt':
@@ -259,6 +278,8 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ document }) => {
             <ExternalLink className="w-12 h-12 mx-auto mb-2 opacity-50" />
             <MessageRenderer content={processedContent} />
           </div>
+        ) : getFileExtension(document.name) === 'docx' || getFileExtension(document.name) === 'doc' ? (
+          <div dangerouslySetInnerHTML={{ __html: processedContent }} className="prose prose-sm max-w-none dark:prose-invert" />
         ) : (
           <MessageRenderer content={processedContent} />
         )}
